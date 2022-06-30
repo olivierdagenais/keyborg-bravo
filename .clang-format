@@ -1,0 +1,22 @@
+# Keep entries sorted alphabetically
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowAllConstructorInitializersOnNextLine: true
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false 
+  AfterExternBlock: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: true
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Custom
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+IndentWidth: 4
+UseTab: Never
