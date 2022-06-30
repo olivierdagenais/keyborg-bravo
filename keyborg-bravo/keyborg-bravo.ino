@@ -99,7 +99,7 @@ class AnalogAxis {
     }
 };
 
-const int NUM_BUTTONS = 5;
+const int NUM_BUTTONS = 1;
 Button *_buttons[NUM_BUTTONS];
 
 const int NUM_ANALOG_AXIS = 4;
@@ -117,12 +117,18 @@ void middleRelease() { Mouse.release(MOUSE_MIDDLE); }
 void rightPress() { Mouse.press(MOUSE_RIGHT); }
 void rightRelease() { Mouse.release(MOUSE_RIGHT); }
 
+bool _muteState = false;
+void toggleMuteMomentary() {
+    _muteState = !_muteState;
+    notifyMuteState();
+}
+
+void notifyMuteState() {
+    Serial.println(_muteState ? 1 : 0);
+}
+
 void setup() {
-    _buttons[0] = new Button(2, &toggleMouseActive, NULL);
-    _buttons[1] = new Button(3, &toggleMouseActive, NULL);
-    _buttons[2] = new Button(4, &middlePress, &middleRelease);
-    _buttons[3] = new Button(5, &rightPress, &rightRelease);
-    _buttons[4] = new Button(6, &leftPress, &leftRelease);
+    _buttons[0] = new Button(2, &toggleMuteMomentary, NULL);
 
     /*
     _analogAxis[0] = new AnalogAxis(0, 1023, 0, 10, 2, 50, 0.1);
@@ -132,7 +138,9 @@ void setup() {
     _analogAxis[2] = new AnalogAxis(2, 128, 775, 6, 2, 20, 0.2);
     _analogAxis[3] = new AnalogAxis(3, 128, 775, 6, 2, 20, 0.2);
     */
-    Serial.begin(115200);
+    Serial.begin(9600);
+    Serial.setTimeout(50 /* maximum milliseconds to wait for stream data */);
+    notifyMuteState();
     Mouse.begin();
 }
 
