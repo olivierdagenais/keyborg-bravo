@@ -124,12 +124,14 @@ void setup() {
     _buttons[3] = new Button(5, &rightPress, &rightRelease);
     _buttons[4] = new Button(6, &leftPress, &leftRelease);
 
+    /*
     _analogAxis[0] = new AnalogAxis(0, 1023, 0, 10, 2, 50, 0.1);
     _analogAxis[1] = new AnalogAxis(1, 1023, 0, 10, 2, 50, 0.1);
     // https://www.sparkfun.com/products/9426 (Thumb Slide Joystick) says:
     // "(...)you can expect a range of about 128 to 775 on each axis."
     _analogAxis[2] = new AnalogAxis(2, 128, 775, 6, 2, 20, 0.2);
     _analogAxis[3] = new AnalogAxis(3, 128, 775, 6, 2, 20, 0.2);
+    */
     Serial.begin(115200);
     Mouse.begin();
 }
@@ -140,6 +142,7 @@ void loop() {
         _buttons[b]->scan();
     }
 
+    /*
     int16_t w = _analogAxis[0]->read(_percent);
     int16_t z = _analogAxis[1]->read(_percent);
     int16_t x = _analogAxis[3]->read(_percent);
@@ -148,6 +151,7 @@ void loop() {
     if (_mouseActive && (x != 0 || y != 0 || z != 0)) {
         Mouse.move(x, y, wheel);
     }
+    */
 
     _percent = (_percent + 1) % 100;
     delay(1);
