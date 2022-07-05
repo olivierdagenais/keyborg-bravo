@@ -99,8 +99,39 @@ class AnalogAxis {
     }
 };
 
+class AnalogLight {
+    protected:
+        const uint8_t _analogPin;
+        const uint8_t _maxBrightness;
+
+    public:
+        AnalogLight(uint8_t analogPin,
+                    uint8_t maxBrightness)
+            : _analogPin(analogPin),
+              _maxBrightness(maxBrightness) {
+            pinMode(_analogPin, OUTPUT);
+        }
+
+        void turnOff() {
+            set(_maxBrightness);
+        }
+
+        void turnOn() {
+            set(_maxBrightness);
+        }
+
+        void set(uint8_t brightness) {
+            analogWrite(_analogPin, brightness);
+        }
+};
+
 const int NUM_BUTTONS = 1;
 Button *_buttons[NUM_BUTTONS];
+
+const uint8_t MAX_BRIGHTNESS = 8;
+AnalogLight * _redLight = new AnalogLight(3, MAX_BRIGHTNESS);
+AnalogLight * _greenLight = new AnalogLight(6, MAX_BRIGHTNESS);
+AnalogLight * _blueLight = new AnalogLight(9, MAX_BRIGHTNESS);
 
 const int NUM_ANALOG_AXIS = 4;
 AnalogAxis *_analogAxis[NUM_ANALOG_AXIS];
@@ -149,6 +180,10 @@ void loop() {
     for (uint8_t b = 0; b < NUM_BUTTONS; b++) {
         _buttons[b]->scan();
     }
+
+    _redLight->turnOn();
+    _greenLight->turnOn();
+    _blueLight->turnOn();
 
     /*
     int16_t w = _analogAxis[0]->read(_percent);
