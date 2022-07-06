@@ -103,6 +103,7 @@ class AnalogLight {
     protected:
         const uint8_t _analogPin;
         const uint8_t _maxBrightness;
+        unsigned long _onUntilMillis = 0;
 
     public:
         AnalogLight(uint8_t analogPin,
@@ -116,8 +117,17 @@ class AnalogLight {
             set(0);
         }
 
-        void turnOn() {
+        void turnOn(unsigned long onUntilMillis = 0) {
+            _onUntilMillis = onUntilMillis;
             set(_maxBrightness);
+        }
+
+        void tick() {
+            if (_onUntilMillis != 0) {
+                if (millis() >= _onUntilMillis) {
+                    turnOff();
+                }
+            }
         }
 
         void set(uint8_t brightness) {
@@ -132,6 +142,8 @@ const uint8_t MAX_BRIGHTNESS = 8;
 AnalogLight * _redLight = new AnalogLight(3, MAX_BRIGHTNESS);
 AnalogLight * _greenLight = new AnalogLight(6, MAX_BRIGHTNESS);
 AnalogLight * _blueLight = new AnalogLight(9, MAX_BRIGHTNESS);
+const int NUM_LIGHTS = 3;
+AnalogLight *_lights[NUM_LIGHTS];
 
 const int NUM_ANALOG_AXIS = 4;
 AnalogAxis *_analogAxis[NUM_ANALOG_AXIS];
@@ -161,6 +173,14 @@ void notifyMuteState() {
 void setup() {
     _buttons[0] = new Button(2, &toggleMuteMomentary, NULL);
 
+    _lights[0] = _redLight;
+    _lights[1] = _greenLight;
+    _lights[2] = _blueLight;
+
+    _redLight->turnOn(millis() + 1000);
+    _greenLight->turnOn(millis() + 2000);
+    _blueLight->turnOn(millis() + 3000);
+
     /*
     _analogAxis[0] = new AnalogAxis(0, 1023, 0, 10, 2, 50, 0.1);
     _analogAxis[1] = new AnalogAxis(1, 1023, 0, 10, 2, 50, 0.1);
@@ -181,9 +201,9 @@ void loop() {
         _buttons[b]->scan();
     }
 
-    _redLight->turnOn();
-    _greenLight->turnOn();
-    _blueLight->turnOn();
+    for (uint8_t l = 0; l < NUM_LIGHTS; l++) {
+        _lights[l]->tick();
+    }
 
     /*
     int16_t w = _analogAxis[0]->read(_percent);
