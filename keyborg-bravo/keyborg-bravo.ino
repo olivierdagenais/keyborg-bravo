@@ -104,6 +104,7 @@ class AnalogLight {
         const uint8_t _analogPin;
         const uint8_t _maxBrightness;
         unsigned long _onUntilMillis = 0;
+        unsigned long _offUntilMillis = 0;
 
     public:
         AnalogLight(uint8_t analogPin,
@@ -113,7 +114,8 @@ class AnalogLight {
             pinMode(_analogPin, OUTPUT);
         }
 
-        void turnOff() {
+        void turnOff(unsigned long offUntilMillis = 0) {
+            _offUntilMillis = offUntilMillis;
             set(0);
         }
 
@@ -126,6 +128,11 @@ class AnalogLight {
             if (_onUntilMillis != 0) {
                 if (millis() >= _onUntilMillis) {
                     turnOff();
+                }
+            }
+            if (_offUntilMillis != 0) {
+                if (millis() >= _offUntilMillis) {
+                    turnOn();
                 }
             }
         }
@@ -177,9 +184,9 @@ void setup() {
     _lights[1] = _greenLight;
     _lights[2] = _blueLight;
 
-    _redLight->turnOn(millis() + 1000);
-    _greenLight->turnOn(millis() + 2000);
-    _blueLight->turnOn(millis() + 3000);
+    _redLight->turnOff(millis() + 1000);
+    _greenLight->turnOff(millis() + 2000);
+    _blueLight->turnOff(millis() + 3000);
 
     /*
     _analogAxis[0] = new AnalogAxis(0, 1023, 0, 10, 2, 50, 0.1);
