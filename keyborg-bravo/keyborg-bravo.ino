@@ -125,13 +125,14 @@ class AnalogLight {
         }
 
         void tick() {
+            unsigned long nowMillis = millis();
             if (_onUntilMillis != 0) {
-                if (millis() >= _onUntilMillis) {
+                if (nowMillis >= _onUntilMillis) {
                     turnOff();
                 }
             }
             if (_offUntilMillis != 0) {
-                if (millis() >= _offUntilMillis) {
+                if (nowMillis >= _offUntilMillis) {
                     turnOn();
                 }
             }
