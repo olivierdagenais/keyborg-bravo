@@ -113,7 +113,7 @@ class AnalogLight {
         }
 
         void turnOff() {
-            set(_maxBrightness);
+            set(0);
         }
 
         void turnOn() {
