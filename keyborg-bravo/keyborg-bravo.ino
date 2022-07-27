@@ -105,6 +105,8 @@ class AnalogLight {
         const uint8_t _maxBrightness;
         unsigned long _onUntilMillis = 0;
         unsigned long _offUntilMillis = 0;
+        unsigned long _blinkCycles = 0;
+        unsigned long _blinkDelayMillis = 0;
 
     public:
         AnalogLight(uint8_t analogPin,
@@ -116,24 +118,46 @@ class AnalogLight {
 
         void turnOff(unsigned long offUntilMillis = 0) {
             _offUntilMillis = offUntilMillis;
+            _onUntilMillis = 0;
             set(0);
         }
 
         void turnOn(unsigned long onUntilMillis = 0) {
             _onUntilMillis = onUntilMillis;
+            _offUntilMillis = 0;
             set(_maxBrightness);
+        }
+
+        void blink(unsigned long blinkCycles = 1, unsigned long blinkDelayMillis = 200) {
+            unsigned long nowMillis = millis();
+            _blinkCycles = (blinkCycles - 1) * 2;
+            _blinkDelayMillis = blinkDelayMillis;
+            unsigned long onUntilMillis = nowMillis + _blinkDelayMillis;
+            turnOn(onUntilMillis);
         }
 
         void tick() {
             unsigned long nowMillis = millis();
             if (_onUntilMillis != 0) {
                 if (nowMillis >= _onUntilMillis) {
-                    turnOff();
+                    _onUntilMillis = 0;
+                    unsigned long offUntilMillis = 0;
+                    if (_blinkCycles > 0) {
+                        offUntilMillis = nowMillis + _blinkDelayMillis;
+                        _blinkCycles--;
+                    }
+                    turnOff(offUntilMillis);
                 }
             }
             if (_offUntilMillis != 0) {
                 if (nowMillis >= _offUntilMillis) {
-                    turnOn();
+                    _offUntilMillis = 0;
+                    unsigned long onUntilMillis = 0;
+                    if (_blinkCycles > 0) {
+                        onUntilMillis = nowMillis + _blinkDelayMillis;
+                        _blinkCycles--;
+                    }
+                    turnOn(onUntilMillis);
                 }
             }
         }
@@ -172,6 +196,7 @@ bool _muteState = false;
 void toggleMuteMomentary() {
     _muteState = !_muteState;
     notifyMuteState();
+    _greenLight->blink(2);
 }
 
 void notifyMuteState() {
@@ -185,9 +210,8 @@ void setup() {
     _lights[1] = _greenLight;
     _lights[2] = _blueLight;
 
-    _redLight->turnOff(millis() + 1000);
-    _greenLight->turnOff(millis() + 2000);
-    _blueLight->turnOff(millis() + 3000);
+    _redLight->blink(10);
+    _blueLight->blink(1, 1000);
 
     /*
     _analogAxis[0] = new AnalogAxis(0, 1023, 0, 10, 2, 50, 0.1);
