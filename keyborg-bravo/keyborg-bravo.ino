@@ -228,6 +228,9 @@ void setup() {
 }
 
 uint8_t _percent = 0;
+String incomingString;
+String oneOhOne = "101";
+
 void loop() {
     for (uint8_t b = 0; b < NUM_BUTTONS; b++) {
         _buttons[b]->scan();
@@ -247,6 +250,74 @@ void loop() {
         Mouse.move(x, y, wheel);
     }
     */
+
+    if (Serial.available() > 0) {
+        incomingString = Serial.readString();
+        unsigned int incomingLength = incomingString.length();
+        char c = incomingString[0];
+        switch (incomingLength)
+        {
+        case 1:
+            switch (c)
+            {
+            case '0': // Red
+                _redLight->blink(1, 1000);
+                _greenLight->turnOff();
+                _blueLight->turnOff();
+                break;
+
+            case '1': // Blue
+                _redLight->turnOff();
+                _greenLight->turnOff();
+                _blueLight->blink(1, 1000);
+                break;
+
+            case '2': // Green
+                _redLight->turnOff();
+                _greenLight->blink(1, 1000);
+                _blueLight->turnOff();
+                break;
+
+            case '3': // Purple
+                _redLight->blink(1, 1000);
+                _greenLight->turnOff();
+                _blueLight->blink(1, 1000);
+                break;
+
+            case '4': // Yellow
+                _redLight->blink(1, 1000);
+                _greenLight->blink(1, 1000);
+                _blueLight->turnOff();
+                break;
+
+            case '5': // White
+                _redLight->blink(1, 1000);
+                _greenLight->blink(1, 1000);
+                _blueLight->blink(1, 1000);
+                break;
+
+            default:
+                _redLight->turnOff();
+                _greenLight->blink(5, 100);
+                _blueLight->blink(5, 100);
+                break;
+            }
+            break;
+        case 3:
+            if (incomingString[0] == '1'
+                && incomingString[1] == '0'
+                && incomingString[2] == '1'
+                ) { // Flash green 3x
+                _redLight->turnOff();
+                _greenLight->blink(3, 250);
+                _blueLight->turnOff();
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
 
     _percent = (_percent + 1) % 100;
     delay(1);
