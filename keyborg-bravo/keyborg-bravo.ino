@@ -253,6 +253,8 @@ void loop() {
 
     if (Serial.available() > 0) {
         incomingString = Serial.readString();
+        // As of 1.0, trim() modifies the String in place rather than returning a new one.
+        incomingString.trim();
         unsigned int incomingLength = incomingString.length();
         char c = incomingString[0];
         switch (incomingLength)
