@@ -100,80 +100,77 @@ class AnalogAxis {
 };
 
 class AnalogLight {
-    protected:
-        const uint8_t _analogPin;
-        const uint8_t _maxBrightness;
-        unsigned long _onUntilMillis = 0;
-        unsigned long _offUntilMillis = 0;
-        unsigned long _blinkCycles = 0;
-        unsigned long _blinkDelayMillis = 0;
+  protected:
+    const uint8_t _analogPin;
+    const uint8_t _maxBrightness;
+    unsigned long _onUntilMillis = 0;
+    unsigned long _offUntilMillis = 0;
+    unsigned long _blinkCycles = 0;
+    unsigned long _blinkDelayMillis = 0;
 
-    public:
-        AnalogLight(uint8_t analogPin,
-                    uint8_t maxBrightness)
-            : _analogPin(analogPin),
-              _maxBrightness(maxBrightness) {
-            pinMode(_analogPin, OUTPUT);
-        }
+  public:
+    AnalogLight(uint8_t analogPin, uint8_t maxBrightness)
+        : _analogPin(analogPin), _maxBrightness(maxBrightness) {
+        pinMode(_analogPin, OUTPUT);
+    }
 
-        void turnOff(unsigned long offUntilMillis = 0) {
-            _offUntilMillis = offUntilMillis;
-            _onUntilMillis = 0;
-            set(0);
-        }
+    void turnOff(unsigned long offUntilMillis = 0) {
+        _offUntilMillis = offUntilMillis;
+        _onUntilMillis = 0;
+        set(0);
+    }
 
-        void turnOn(unsigned long onUntilMillis = 0) {
-            _onUntilMillis = onUntilMillis;
-            _offUntilMillis = 0;
-            set(_maxBrightness);
-        }
+    void turnOn(unsigned long onUntilMillis = 0) {
+        _onUntilMillis = onUntilMillis;
+        _offUntilMillis = 0;
+        set(_maxBrightness);
+    }
 
-        void blink(unsigned long blinkCycles = 1, unsigned long blinkDelayMillis = 200) {
-            unsigned long nowMillis = millis();
-            _blinkCycles = (blinkCycles - 1) * 2;
-            _blinkDelayMillis = blinkDelayMillis;
-            unsigned long onUntilMillis = nowMillis + _blinkDelayMillis;
-            turnOn(onUntilMillis);
-        }
+    void blink(unsigned long blinkCycles = 1,
+               unsigned long blinkDelayMillis = 200) {
+        unsigned long nowMillis = millis();
+        _blinkCycles = (blinkCycles - 1) * 2;
+        _blinkDelayMillis = blinkDelayMillis;
+        unsigned long onUntilMillis = nowMillis + _blinkDelayMillis;
+        turnOn(onUntilMillis);
+    }
 
-        void tick() {
-            unsigned long nowMillis = millis();
-            if (_onUntilMillis != 0) {
-                if (nowMillis >= _onUntilMillis) {
-                    _onUntilMillis = 0;
-                    unsigned long offUntilMillis = 0;
-                    if (_blinkCycles > 0) {
-                        offUntilMillis = nowMillis + _blinkDelayMillis;
-                        _blinkCycles--;
-                    }
-                    turnOff(offUntilMillis);
+    void tick() {
+        unsigned long nowMillis = millis();
+        if (_onUntilMillis != 0) {
+            if (nowMillis >= _onUntilMillis) {
+                _onUntilMillis = 0;
+                unsigned long offUntilMillis = 0;
+                if (_blinkCycles > 0) {
+                    offUntilMillis = nowMillis + _blinkDelayMillis;
+                    _blinkCycles--;
                 }
-            }
-            if (_offUntilMillis != 0) {
-                if (nowMillis >= _offUntilMillis) {
-                    _offUntilMillis = 0;
-                    unsigned long onUntilMillis = 0;
-                    if (_blinkCycles > 0) {
-                        onUntilMillis = nowMillis + _blinkDelayMillis;
-                        _blinkCycles--;
-                    }
-                    turnOn(onUntilMillis);
-                }
+                turnOff(offUntilMillis);
             }
         }
-
-        void set(uint8_t brightness) {
-            analogWrite(_analogPin, brightness);
+        if (_offUntilMillis != 0) {
+            if (nowMillis >= _offUntilMillis) {
+                _offUntilMillis = 0;
+                unsigned long onUntilMillis = 0;
+                if (_blinkCycles > 0) {
+                    onUntilMillis = nowMillis + _blinkDelayMillis;
+                    _blinkCycles--;
+                }
+                turnOn(onUntilMillis);
+            }
         }
+    }
+
+    void set(uint8_t brightness) { analogWrite(_analogPin, brightness); }
 };
 
 const int NUM_BUTTONS = 1;
 Button *_buttons[NUM_BUTTONS];
 
 const uint8_t MAX_BRIGHTNESS = 8;
-AnalogLight * _redLight = new AnalogLight(3, MAX_BRIGHTNESS);
-AnalogLight * _greenLight = new AnalogLight(6, MAX_BRIGHTNESS);
-AnalogLight * _blueLight = new AnalogLight(9, MAX_BRIGHTNESS);
+AnalogLight *_redLight = new AnalogLight(3, MAX_BRIGHTNESS);
+AnalogLight *_greenLight = new AnalogLight(6, MAX_BRIGHTNESS);
+AnalogLight *_blueLight = new AnalogLight(9, MAX_BRIGHTNESS);
 const int NUM_LIGHTS = 3;
 AnalogLight *_lights[NUM_LIGHTS];
 
