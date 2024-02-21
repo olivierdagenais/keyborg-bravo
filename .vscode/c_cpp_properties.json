@@ -37,8 +37,9 @@
             "includePath": [
                 "G:\\hardware\\arduino\\avr\\cores\\arduino",
                 "G:\\hardware\\arduino\\avr\\variants\\leonardo",
-                "G:\\libraries\\Mouse\\src",
+                "G:\\libraries\\Keyboard\\src",
                 "G:\\hardware\\arduino\\avr\\libraries\\HID\\src",
+                "G:\\libraries\\Mouse\\src",
                 "g:\\hardware\\tools\\avr\\lib\\gcc\\avr\\7.3.0\\include",
                 "g:\\hardware\\tools\\avr\\lib\\gcc\\avr\\7.3.0\\include-fixed",
                 "g:\\hardware\\tools\\avr\\avr\\include"

@@ -3,6 +3,7 @@
 // Licensed under the GNU General Public License. See LICENSE in the project
 // root.
 
+#include "Keyboard.h"
 #include "Mouse.h"
 
 typedef void (*callback_no_params)(void);
@@ -213,8 +214,10 @@ class AnalogLight {
     void set(uint8_t brightness) { analogWrite(_analogPin, brightness); }
 };
 
-const int NUM_BUTTONS = 1;
+const int NUM_BUTTONS = 2;
 Button *_buttons[NUM_BUTTONS];
+
+Encoder *_wheel;
 
 const uint8_t MAX_BRIGHTNESS = 8;
 AnalogLight *_redLight = new AnalogLight(3, MAX_BRIGHTNESS);
@@ -238,6 +241,9 @@ void middleRelease() { Mouse.release(MOUSE_MIDDLE); }
 void rightPress() { Mouse.press(MOUSE_RIGHT); }
 void rightRelease() { Mouse.release(MOUSE_RIGHT); }
 
+void clockwise() { Mouse.move(0, 0, 1); }
+void counter() { Mouse.move(0, 0, -1); }
+
 bool _muteState = false;
 void toggleMuteMomentary() {
     _muteState = !_muteState;
@@ -246,11 +252,16 @@ void toggleMuteMomentary() {
 }
 
 void notifyMuteState() {
-    Serial.println(_muteState ? 1 : 0);
+    // TODO: send Alt+k
+    Keyboard.press(KEY_LEFT_ALT);
+    Keyboard.press('k');
+    Keyboard.releaseAll();
 }
 
 void setup() {
     _buttons[0] = new Button(2, &toggleMuteMomentary, NULL);
+    _buttons[1] = new Button(14, &middlePress, &middleRelease);
+    _wheel = new Encoder(15, 16, &clockwise, &counter);
 
     _lights[0] = _redLight;
     _lights[1] = _greenLight;
@@ -259,114 +270,19 @@ void setup() {
     _redLight->blink(10);
     _blueLight->blink(1, 1000);
 
-    /*
-    _analogAxis[0] = new AnalogAxis(0, 1023, 0, 10, 2, 50, 0.1);
-    _analogAxis[1] = new AnalogAxis(1, 1023, 0, 10, 2, 50, 0.1);
-    // https://www.sparkfun.com/products/9426 (Thumb Slide Joystick) says:
-    // "(...)you can expect a range of about 128 to 775 on each axis."
-    _analogAxis[2] = new AnalogAxis(2, 128, 775, 6, 2, 20, 0.2);
-    _analogAxis[3] = new AnalogAxis(3, 128, 775, 6, 2, 20, 0.2);
-    */
-    Serial.begin(9600);
-    Serial.setTimeout(50 /* maximum milliseconds to wait for stream data */);
-    notifyMuteState();
     Mouse.begin();
 }
-
-uint8_t _percent = 0;
-String incomingString;
-String oneOhOne = "101";
 
 void loop() {
     for (uint8_t b = 0; b < NUM_BUTTONS; b++) {
         _buttons[b]->scan();
     }
 
+    _wheel->scan();
+
     for (uint8_t l = 0; l < NUM_LIGHTS; l++) {
         _lights[l]->tick();
     }
 
-    /*
-    int16_t w = _analogAxis[0]->read(_percent);
-    int16_t z = _analogAxis[1]->read(_percent);
-    int16_t x = _analogAxis[3]->read(_percent);
-    int16_t y = _analogAxis[2]->read(_percent);
-    int16_t wheel = (z == 0 ? 0 : (z > 0 ? -1 : 1));
-    if (_mouseActive && (x != 0 || y != 0 || z != 0)) {
-        Mouse.move(x, y, wheel);
-    }
-    */
-
-    if (Serial.available() > 0) {
-        incomingString = Serial.readString();
-        // As of 1.0, trim() modifies the String in place rather than returning a new one.
-        incomingString.trim();
-        unsigned int incomingLength = incomingString.length();
-        char c = incomingString[0];
-        switch (incomingLength)
-        {
-        case 1:
-            switch (c)
-            {
-            case '0': // Red
-                _redLight->blink(1, 1000);
-                _greenLight->turnOff();
-                _blueLight->turnOff();
-                break;
-
-            case '1': // Blue
-                _redLight->turnOff();
-                _greenLight->turnOff();
-                _blueLight->blink(1, 1000);
-                break;
-
-            case '2': // Green
-                _redLight->turnOff();
-                _greenLight->blink(1, 1000);
-                _blueLight->turnOff();
-                break;
-
-            case '3': // Purple
-                _redLight->blink(1, 1000);
-                _greenLight->turnOff();
-                _blueLight->blink(1, 1000);
-                break;
-
-            case '4': // Yellow
-                _redLight->blink(1, 1000);
-                _greenLight->blink(1, 1000);
-                _blueLight->turnOff();
-                break;
-
-            case '5': // White
-                _redLight->blink(1, 1000);
-                _greenLight->blink(1, 1000);
-                _blueLight->blink(1, 1000);
-                break;
-
-            default:
-                _redLight->turnOff();
-                _greenLight->blink(5, 100);
-                _blueLight->blink(5, 100);
-                break;
-            }
-            break;
-        case 3:
-            if (incomingString[0] == '1'
-                && incomingString[1] == '0'
-                && incomingString[2] == '1'
-                ) { // Flash green 3x
-                _redLight->turnOff();
-                _greenLight->blink(3, 250);
-                _blueLight->turnOff();
-            }
-            break;
-
-        default:
-            break;
-        }
-    }
-
-    _percent = (_percent + 1) % 100;
     delay(1);
 }

@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:leonardo",
-    "port": "COM4",
+    "port": "COM5",
     "output": "output",
     "sketch": "keyborg-bravo\\keyborg-bravo.ino",
     "programmer": "arduino:avrispmkii"
