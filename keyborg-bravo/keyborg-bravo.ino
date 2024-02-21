@@ -50,6 +50,55 @@ class Button {
     }
 };
 
+class Encoder {
+  protected:
+    const uint8_t _clockPin;
+    const uint8_t _dataPin;
+    const callback_no_params _clockwise;
+    const callback_no_params _counter;
+
+    volatile bool _currentClockState;
+
+  public:
+    Encoder(uint8_t clockPin,
+            uint8_t dataPin,
+            callback_no_params clockwise,
+            callback_no_params counter)
+        : _clockPin(clockPin),
+          _dataPin(dataPin),
+          _clockwise(clockwise),
+          _counter(counter) {
+        _currentClockState = false;
+        pinMode(_clockPin, INPUT_PULLUP);
+        pinMode(_dataPin, INPUT_PULLUP);
+    }
+
+    void scan() {
+        bool newClock = digitalRead(_clockPin) == 0;
+        if (_currentClockState) { // clock was previously active
+            if (!newClock) {      // now it's inactive
+                _currentClockState = false;
+            }
+        }
+        else {              // clock wasn't active
+            if (newClock) { // now it's active
+                _currentClockState = true;
+                bool newData = digitalRead(_dataPin) == 0;
+                if (newData) {
+                    if (_clockwise != NULL) {
+                        _clockwise();
+                    }
+                }
+                else {
+                    if (_counter != NULL) {
+                        _counter();
+                    }
+                }
+            }
+        }
+    }
+};
+
 class AnalogAxis {
   protected:
     const uint8_t _analogPin;
