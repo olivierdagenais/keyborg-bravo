@@ -8,6 +8,52 @@
 
 typedef void (*callback_no_params)(void);
 
+
+// imported and adapted from https://github.com/LSChyi/blackberry-mini-trackball/blob/f5187f980e1fb109c579be2ead443965f84aaf8e/blackberry_mini_trackball/blackberry_mini_trackball.ino
+class Direction {
+public:
+  Direction(int pin1, int pin2) {
+    this->pins[0] = pin1;
+    this->pins[1] = pin2;
+    pinMode(this->pins[0], INPUT);
+    pinMode(this->pins[1], INPUT);
+  };
+  int read_action() {
+    for(int i = 0; i < 2; ++i) {
+      this->current_actions[i] = digitalRead(this->pins[i]);
+      this->current_action_times[i] = millis();
+      if(this->current_actions[i] != this->last_actions[i]) {
+        this->last_actions[i] = this->current_actions[i];
+        exponential = (exponential_bound - (this->current_action_times[i] - this->last_action_times[i]));
+        exponential = (exponential > 0) ? exponential : 1;
+        move_multiply = exponential_base;
+        for(int i = 0; i < exponential; ++i) {
+          move_multiply *= exponential_base;
+        }
+        this->last_action_times[i] = this->current_action_times[i];
+        if(i == 0) {
+          return (-1) * base_move_pixels * move_multiply;
+        } else {
+          return base_move_pixels * move_multiply;
+        }
+      }
+    }
+    return 0;
+  };
+private:
+  int pins[2];
+  int current_actions[2];
+  int last_actions[2];
+  int  exponential;
+  double move_multiply;
+  unsigned long current_action_times[2];
+  unsigned long last_action_times[2];
+  // these used to be declared via #define
+  int base_move_pixels = 5;
+  int exponential_bound = 15;
+  double exponential_base = 1.2;
+};
+
 class Button {
   protected:
     const uint8_t _buttonPin;
@@ -214,7 +260,7 @@ class AnalogLight {
     void set(uint8_t brightness) { analogWrite(_analogPin, brightness); }
 };
 
-const int NUM_BUTTONS = 2;
+const int NUM_BUTTONS = 3;
 Button *_buttons[NUM_BUTTONS];
 
 Encoder *_wheel;
@@ -223,7 +269,8 @@ const uint8_t MAX_BRIGHTNESS = 8;
 AnalogLight *_redLight = new AnalogLight(3, MAX_BRIGHTNESS);
 AnalogLight *_greenLight = new AnalogLight(6, MAX_BRIGHTNESS);
 AnalogLight *_blueLight = new AnalogLight(9, MAX_BRIGHTNESS);
-const int NUM_LIGHTS = 3;
+AnalogLight *_ballLight = new AnalogLight(5, 255);
+const int NUM_LIGHTS = 4;
 AnalogLight *_lights[NUM_LIGHTS];
 
 const int NUM_ANALOG_AXIS = 4;
@@ -252,24 +299,31 @@ void toggleMuteMomentary() {
 }
 
 void notifyMuteState() {
-    // TODO: send Alt+k
     Keyboard.press(KEY_LEFT_ALT);
     Keyboard.press('k');
     Keyboard.releaseAll();
 }
 
+int x_move, y_move;
+Direction x_direction(8, 7);
+Direction y_direction(19, 20);
+
 void setup() {
     _buttons[0] = new Button(2, &toggleMuteMomentary, NULL);
     _buttons[1] = new Button(14, &middlePress, &middleRelease);
+    _buttons[2] = new Button(21, &rightPress, &rightRelease);
     _wheel = new Encoder(15, 16, &clockwise, &counter);
 
     _lights[0] = _redLight;
     _lights[1] = _greenLight;
     _lights[2] = _blueLight;
+    _lights[3] = _ballLight;
 
     _redLight->blink(10);
     _blueLight->blink(1, 1000);
+    _ballLight->turnOn();
 
+    //Serial.begin(115200);
     Mouse.begin();
 }
 
@@ -282,6 +336,12 @@ void loop() {
 
     for (uint8_t l = 0; l < NUM_LIGHTS; l++) {
         _lights[l]->tick();
+    }
+
+    x_move = x_direction.read_action();
+    y_move = y_direction.read_action();
+    if (x_move != 0 || y_move != 0) {
+        Mouse.move(x_move, y_move, 0);
     }
 
     delay(1);
